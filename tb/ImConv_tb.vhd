@@ -46,51 +46,67 @@ signal addi_op: std_logic_vector (6 downto 0) := "0010011";
 signal lw_op: std_logic_vector (6 downto 0) := "0000011";
 signal sw_op: std_logic_vector (6 downto 0) := "0100011";
 signal ins_init : std_logic_vector (31 downto 0) := (others => '0');
-signal ins : std_logic_vector(31 downto 0);
-signal imm : std_logic_vector(31 downto 0);
+signal ins0 : std_logic_vector(31 downto 0);
+signal imm0 : std_logic_vector(31 downto 0);
+signal ins1 : std_logic_vector(31 downto 0);
+signal imm1 : std_logic_vector(31 downto 0);
+signal ins2 : std_logic_vector(31 downto 0);
+signal imm2 : std_logic_vector(31 downto 0);
+signal ins3 : std_logic_vector(31 downto 0);
+signal imm3 : std_logic_vector(31 downto 0);
 begin
-    test1 : ImConv Port map (a=>ins, imm=>imm);
-    tb_addi_lw : process begin 
-        for i in 100 downto 0 loop 
-            ins <= ins_init;
-            ins (6 downto 0) <= addi_op;
-            ins (31 downto 20) <= std_logic_vector(TO_SIGNED(i, 12));
+    test0 : ImConv Port map (a=>ins0, imm=>imm0);
+    tb_lw : process begin 
+        for i in 50 downto -50 loop 
+            ins0 <= ins_init;
+            ins0 (6 downto 0) <= lw_op;
+            ins0 (31 downto 20) <= std_logic_vector(to_signed(i, 12));
             wait for 100 ns;
-            assert(imm = std_logic_vector(TO_SIGNED(i, 12)))
-                report "test addi failed ur bad: got " & integer'image(imm) & " expected: "& integer'image(i)
-                severity error;
-            ins (6 downto 0) <= lw_op;
-            wait for 100 ns;
-            assert(imm = std_logic_vector(TO_SIGNED(i, 12)))
-                report "test lw failed ur bad: got " & integer'image(imm) & " expected: "& integer'image(i)
+            assert(TO_INTEGER(signed(imm0)) = i)
+                report "test lw failed ur bad: got " & integer'image(TO_INTEGER(signed(imm0))) & " expected: "& integer'image(i)
                 severity error;
         end loop;
         wait; 
     end process;
+    test1 : ImConv Port map (a=>ins1, imm=>imm1);
+    tb_add1 : process begin 
+        for i in 50 downto -50 loop 
+            ins1 <= ins_init;
+            ins1 (6 downto 0) <= addi_op;
+            ins1 (31 downto 20) <= std_logic_vector(to_signed(i, 12));
+            wait for 100 ns;
+            assert(TO_INTEGER(signed(imm1)) = i)
+                report "test addi failed ur bad: got " & integer'image(TO_INTEGER(signed(imm1))) & " expected: "& integer'image(i)
+                severity error;
+        end loop;
+        wait; 
+    end process;
+    test2 : ImConv Port map (a=>ins2, imm=>imm2);
     tb_sw : process 
     variable tmp : std_logic_vector (11 downto 0);
     begin 
-        for i in 100 downto 0 loop 
-            ins <= ins_init;
-            ins (6 downto 0) <= addi_op;
-            tmp := std_logic_vector(TO_SIGNED(i, 12));
-            ins (11 downto 7) <= tmp (4 downto 0);
-            ins (31 downto 25) <= tmp (11 downto 5);
+        for i in 50 downto -50 loop 
+            ins2 <= ins_init;
+            ins2 (6 downto 0) <= addi_op;
+            tmp := std_logic_vector(to_signed(i, 12));
+            ins2 (11 downto 7) <= tmp (4 downto 0);
+            ins2 (31 downto 25) <= tmp (11 downto 5);
             wait for 100 ns;
-            assert(imm = std_logic_vector(TO_SIGNED(i, 12)))
-                report "test sw failed ur bad: got " & integer'image(imm) & " expected: "& integer'image(i)
+            assert(TO_INTEGER(signed(imm2)) = i)
+                report "test sw failed ur bad : got " & integer'image(TO_INTEGER(signed(imm2))) & " expected: "& integer'image(i)
                 severity error;
         end loop;
         wait; 
     end process;
+    test3 : ImConv Port map (a=>ins3, imm=>imm3);
     tb_unsupported : process begin 
         for i in 100 downto 0 loop 
-            ins <= ins_init;
-            ins (6 downto 0) <= rand_op;
-            ins (11 downto 0) <= std_logic_vector(TO_SIGNED(i, 12));
+            ins3 <= ins_init;
+            ins3 (6 downto 0) <= rand_op;
+            ins3 (11 downto 0) <= std_logic_vector(to_signed(i, 12));
             wait for 100 ns;
-            assert(imm = std_logic_vector(TO_SIGNED(0, 12)))
-                report "test unsupported failed ur bad: got " & integer'image(imm) & " expected: "& integer'image(i)
+            assert(TO_INTEGER(signed(imm3)) = 0)
+                report "test unsupported failed ur bad : got " & integer'image(TO_INTEGER(signed(imm3))) & " expected: "& integer'image(i)
                 severity error;
         end loop;
         wait; 
